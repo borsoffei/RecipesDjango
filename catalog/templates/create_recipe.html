@@ -32,16 +32,38 @@
             ingredientCount++;
             $('#ingredient-count').val(ingredientCount);
             var newIngredient = `
-            <div class="ingredient">
-                <select name="ingredient_${ingredientCount}">
-                    {% for ingredient in ingredients %}
-                        <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
-                    {% endfor %}
-                </select>
-                <input type="text" name="quantity_${ingredientCount}" placeholder="Quantity" required>
-            </div>
-        `;
+        <div class="ingredient">
+            <select name="ingredient_${ingredientCount}">
+                {% for ingredient in ingredients %}
+                    <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" name="quantity_${ingredientCount}" placeholder="Quantity" required>
+            <button type="button" class="remove-ingredient">Remove</button>
+        </div>
+    `;
             $('#ingredients').append(newIngredient);
+        });
+
+        // Use event delegation to handle click events on remove buttons
+        $('#ingredients').on('click', '.remove-ingredient', function () {
+            $(this).parent().remove();
+            ingredientCount--;
+            $('#ingredient-count').val(ingredientCount);
+        });
+    </script>
+    <script>
+        $('form').on('submit', function (e) {
+            var ingredients = [];
+            for (var i = 1; i <= ingredientCount; i++) {
+                var ingredient = $('select[name="ingredient_' + i + '"]').val();
+                if (ingredients.includes(ingredient)) {
+                    alert('Each ingredient should be unique.');
+                    e.preventDefault();  // Cancel the submit
+                    return;
+                }
+                ingredients.push(ingredient);
+            }
         });
     </script>
 {% endblock %}
