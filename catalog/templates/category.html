@@ -43,20 +43,11 @@
                     </div>
 
                     <h4>Ingredients</h4>
-                    <input id="ingredientSearch" type="text" placeholder="Search ingredients...">
-                    <div id="ingredientsList">
+                    <select id="ingredientSelect" class="select2" multiple>
                         {% for ingredient in ingredients %}
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="{{ ingredient.id }}"
-                                       id="ingredient{{ ingredient.id }}">
-                                <label class="form-check-label" for="ingredient{{ ingredient.id }}">
-                                    {{ ingredient.name }}
-                                </label>
-                            </div>
+                            <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
                         {% endfor %}
-                    </div>
-                    <button type="button" id="toggleIngredients">Show/Hide Ingredients</button>
-
+                    </select>
                     <button type="submit">Apply Filters</button>
                 </form>
             </div>
@@ -65,15 +56,10 @@
             </div>
         </div>
         <script>
-            $(document).ready(function () {
-                $("#ingredientSearch").on("keyup", function () {
-                    var value = $(this).val().toLowerCase();
-                    $("#ingredientsList label").filter(function () {
-                        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-                    });
-                });
+            $('#ingredientSelect').select2({
+                placeholder: 'Select ingredients',
+                allowClear: true
             });
-
         </script>
 
     </div>

@@ -87,6 +87,7 @@ def favorites_view(request):
 def category_view(request, category_name):
     category = Category.objects.get(name=category_name)
     recipes = Recipe.objects.filter(category=category)
+    selected_ingredients = request.POST.getlist('ingredientSelect')
     return render(request, 'category.html', {'category': category, 'recipes': recipes})
 
 def create_recipe_view(request):
