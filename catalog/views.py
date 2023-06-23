@@ -97,13 +97,15 @@ def create_recipe_view(request):
             recipe.user = request.user
             recipe.save()
 
-            # Get the selected ingredients from the POST data
-            selected_ingredients = request.POST.getlist('ingredients')
+            # Get the count of ingredients from the POST data
+            ingredientCount = int(request.POST["ingredient_count"])
 
             # Create RecipeIngredient objects for each selected ingredient
-            for ingredient_id in selected_ingredients:
+            for i in range(1, ingredientCount + 1):
+                ingredient_id = request.POST[f"ingredient_{i}"]
+                quantity = request.POST[f"quantity_{i}"]
                 ingredient = Ingredient.objects.get(id=ingredient_id)
-                RecipeIngredient.objects.create(recipe=recipe, ingredient=ingredient)
+                RecipeIngredient.objects.create(recipe=recipe, ingredient=ingredient, quantity=quantity)
 
             return redirect('profile')
     else:

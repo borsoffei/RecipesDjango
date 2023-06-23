@@ -7,30 +7,41 @@
         {% csrf_token %}
         {{ form.as_p }}
 
-        <input id="ingredientSearch" type="text" placeholder="Search ingredients...">
-        <div id="ingredientsList">
-            {% for ingredient in ingredients %}
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="ingredients" value="{{ ingredient.id }}"
-                           id="ingredient{{ ingredient.id }}">
-                    <label class="form-check-label" for="ingredient{{ ingredient.id }}">
-                        {{ ingredient.name }}
-                    </label>
-                </div>
-            {% endfor %}
+        <div id="ingredients">
+            <div class="ingredient">
+                <select name="ingredient_1">
+                    {% for ingredient in ingredients %}
+                        <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="quantity_1" placeholder="Quantity" required>
+            </div>
         </div>
-
+        <input type="hidden" name="ingredient_count" id="ingredient-count" value="1">
+        <button type="button" id="add-ingredient">Add Ingredient</button>
         <button type="submit">Publish</button>
     </form>
 
     <script>
-        $(document).ready(function () {
-            $("#ingredientSearch").on("keyup", function () {
-                var value = $(this).val().toLowerCase();
-                $("#ingredientsList label").filter(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-                });
-            });
+        $('select').select2({
+            tags: true
+        });
+        var ingredientCount = 1;
+
+        $('#add-ingredient').click(function () {
+            ingredientCount++;
+            $('#ingredient-count').val(ingredientCount);
+            var newIngredient = `
+            <div class="ingredient">
+                <select name="ingredient_${ingredientCount}">
+                    {% for ingredient in ingredients %}
+                        <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="quantity_${ingredientCount}" placeholder="Quantity" required>
+            </div>
+        `;
+            $('#ingredients').append(newIngredient);
         });
     </script>
 {% endblock %}
