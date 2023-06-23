@@ -1,0 +1,26 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+header h1 {
+    margin: 0;
+}
+
+header a {
+    color: #007bff;
+    text-decoration: none;
+    margin-right: 15px;
+}
+
+header a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}

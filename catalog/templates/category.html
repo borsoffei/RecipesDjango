@@ -1,0 +1,80 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>{{ category.name }}</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <h3>Filters</h3>
+                <form id="filterForm">
+
+                    <h4>Sorting</h4>
+                    <select id="sorting" name="sorting">
+                        <option value="difficulty_asc">Difficulty (Low to High)</option>
+                        <option value="difficulty_desc">Difficulty (High to Low)</option>
+                        <option value="time_asc">Time (Low to High)</option>
+                        <option value="time_desc">Time (High to Low)</option>
+                        <option value="rating_asc">Rating (Low to High)</option>
+                        <option value="rating_desc">Rating (High to Low)</option>
+                    </select>
+
+                    <h4>Time</h4>
+                    <div id="timeCheckboxes">
+                        <input type="checkbox" id="time1" name="time" value="up_to_15">
+                        <label for="time1">Up to 15 minutes</label><br>
+                        <input type="checkbox" id="time2" name="time" value="15_to_30">
+                        <label for="time2">15-30 minutes</label><br>
+                        <input type="checkbox" id="time3" name="time" value="30_to_60">
+                        <label for="time3">30-60 minutes</label><br>
+                        <input type="checkbox" id="time4" name="time" value="60_to_90">
+                        <label for="time4">60-90 minutes</label><br>
+                        <input type="checkbox" id="time5" name="time" value="90_plus">
+                        <label for="time5">90+ minutes</label><br>
+                    </div>
+
+                    <h4>Difficulty</h4>
+                    <div id="difficultyCheckboxes">
+                        <input type="checkbox" id="difficulty1" name="difficulty" value="easy">
+                        <label for="difficulty1">Easy</label><br>
+                        <input type="checkbox" id="difficulty2" name="difficulty" value="normal">
+                        <label for="difficulty2">Normal</label><br>
+                        <input type="checkbox" id="difficulty3" name="difficulty" value="hard">
+                        <label for="difficulty3">Hard</label><br>
+                    </div>
+
+                    <h4>Ingredients</h4>
+                    <input id="ingredientSearch" type="text" placeholder="Search ingredients...">
+                    <div id="ingredientsList">
+                        {% for ingredient in ingredients %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="{{ ingredient.id }}"
+                                       id="ingredient{{ ingredient.id }}">
+                                <label class="form-check-label" for="ingredient{{ ingredient.id }}">
+                                    {{ ingredient.name }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" id="toggleIngredients">Show/Hide Ingredients</button>
+
+                    <button type="submit">Apply Filters</button>
+                </form>
+            </div>
+            <div class="col-md-9">
+                <!-- Display recipes here -->
+            </div>
+        </div>
+        <script>
+            $(document).ready(function () {
+                $("#ingredientSearch").on("keyup", function () {
+                    var value = $(this).val().toLowerCase();
+                    $("#ingredientsList label").filter(function () {
+                        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                    });
+                });
+            });
+
+        </script>
+
+    </div>
+{% endblock %}

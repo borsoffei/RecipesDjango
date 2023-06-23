@@ -1,0 +1,21 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>{{ user.username }}</h1>
+{#    <a href="{% url 'change_password' %}">Change password</a>#}
+{#    <a href="{% url 'change_username' %}">Change username</a>#}
+    <p>Settings</p>
+    {% if recipes %}
+        <h2>Your Recipes</h2>
+        {% for recipe in recipes %}
+            <div>
+
+                <a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a>
+                <!-- Добавьте здесь дополнительную информацию о рецепте -->
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>You have no recipes yet. </p>
+{#        <a href="{% url 'create_recipe' %}">Create one?</a>#}
+    {% endif %}
+{% endblock %}

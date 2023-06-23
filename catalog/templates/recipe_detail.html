@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>{{ recipe.title }}</h1>
+    <p>Author: <a href="{% url 'user_view' recipe.user.username %}">{{ recipe.user.username }}</a></p>
+    <p>Time: {{ recipe.time }} minutes</p>
+    <p>Difficulty: {{ recipe.get_difficulty_display }}</p>
+    <h2>Ingredients:</h2>
+    <ul>
+        {% for ingredient in recipe.recipeingredient_set.all %}
+            <li>{{ ingredient.ingredient.name }}: {{ ingredient.quantity }}</li>
+        {% endfor %}
+    </ul>
+    <h2>Instructions:</h2>
+    <p>{{ recipe.instructions }}</p>
+{% endblock %}
