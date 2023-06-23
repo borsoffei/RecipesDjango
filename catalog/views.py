@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from .forms import RegistrationForm, RecipeForm
@@ -30,8 +31,6 @@ from django.contrib.auth.models import User
 # {'recipes': recipes}
 # Create your views here.
 def index(request):
-
-
     return render(request, 'index.html', )
 
 
@@ -76,19 +75,68 @@ def profile(request):
 
 def user_view(request, username):
     user = User.objects.get(username=username)
-    recipes = Recipe.objects.filter(user_id=user)
+    recipes = Recipe.objects.filter(user=user)
     return render(request, 'user.html', {'user': user, 'recipes': recipes})
 
 
 def favorites_view(request):
-    saved_recipes = SavedRecipe.objects.filter(user_id=request.user)
+    saved_recipes = SavedRecipe.objects.filter(user=request.user)
     return render(request, 'favorites.html', {'saved_recipes': saved_recipes})
+
 
 def category_view(request, category_name):
     category = Category.objects.get(name=category_name)
-    recipes = Recipe.objects.filter(category=category)
-    selected_ingredients = request.POST.getlist('ingredientSelect')
+    if request.method == 'POST':
+        # Get filter data from POST
+        sorting = request.POST.get('sorting')
+        time = request.POST.getlist('time')
+        difficulty = request.POST.getlist('difficulty')
+        ingredients = request.POST.getlist('ingredients')
+
+        # Filter recipes based on filter data
+        recipes = Recipe.objects.filter(category=category)
+        if sorting:
+            if 'asc' in sorting:
+                order = ''
+            else:
+                order = '-'
+            if 'difficulty' in sorting:
+                recipes = recipes.order_by(f'{order}difficulty')
+            elif 'time' in sorting:
+                recipes = recipes.order_by(f'{order}time')
+            elif 'rating' in sorting:
+                recipes = recipes.order_by(f'{order}rating')
+        if time:
+            # Convert time ranges to actual time values
+            time_ranges = {
+                'up_to_15': (0, 15),
+                '15_to_30': (15, 30),
+                '30_to_60': (30, 60),
+                '60_to_90': (60, 90),
+                '90_plus': (90, 10000),
+            }
+            queries = [Q(time__range=time_ranges[t]) for t in time]
+            query = queries.pop()
+            for item in queries:
+                query |= item
+            recipes = recipes.filter(query)
+        if difficulty:
+            # Convert difficulty levels to actual difficulty values
+            difficulty_levels = {
+                'easy': 1,
+                'normal': 2,
+                'hard': 3,
+            }
+            recipes = recipes.filter(difficulty__in=[difficulty_levels[d] for d in difficulty])
+        if ingredients:
+            # Get the ingredients by their IDs
+            ingredient_objects = Ingredient.objects.filter(id__in=ingredients)
+            # Filter the recipes by the ingredients
+            recipes = recipes.filter(recipeingredient__ingredient__in=ingredient_objects).distinct()
+    else:
+        recipes = Recipe.objects.filter(category=category)
     return render(request, 'category.html', {'category': category, 'recipes': recipes})
+
 
 def create_recipe_view(request):
     if request.method == 'POST':
@@ -113,6 +161,7 @@ def create_recipe_view(request):
         form = RecipeForm()
         ingredients = Ingredient.objects.all()  # Get all ingredients for the form
     return render(request, 'create_recipe.html', {'form': form, 'ingredients': ingredients})
+
 
 def recipe_detail_view(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)

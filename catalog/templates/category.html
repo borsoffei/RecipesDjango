@@ -6,8 +6,8 @@
         <div class="row">
             <div class="col-md-3">
                 <h3>Filters</h3>
-                <form id="filterForm">
-
+                <form id="filterForm" method="POST" action="{% url 'category_view' category.name %}">
+                    {% csrf_token %}
                     <h4>Sorting</h4>
                     <select id="sorting" name="sorting">
                         <option value="difficulty_asc">Difficulty (Low to High)</option>
@@ -43,7 +43,7 @@
                     </div>
 
                     <h4>Ingredients</h4>
-                    <select id="ingredientSelect" class="select2" multiple>
+                    <select id="ingredientSelect" class="select2" name="ingredients" multiple>
                         {% for ingredient in ingredients %}
                             <option value="{{ ingredient.id }}">{{ ingredient.name }}</option>
                         {% endfor %}
@@ -52,7 +52,11 @@
                 </form>
             </div>
             <div class="col-md-9">
-                <!-- Display recipes here -->
+                <ul>
+                    {% for recipe in recipes %}
+                        <li><a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a></li>
+                    {% endfor %}
+                </ul>
             </div>
         </div>
         <script>

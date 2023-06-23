@@ -29,7 +29,7 @@ class Recipe(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(max_length=200, unique=True)
 
-    def ingredient_name(self):
+    def __str__(self):
         return self.name
 
 
@@ -37,13 +37,6 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     quantity = models.CharField(max_length=200)
-
-    # возможно заменить на просто массив
-    def recipe_ingredient(self):
-        return {self.recipe: [self.ingredient, self.quantity]}
-
-    def ingredient_recipe(self):
-        return {self.ingredient: [self.recipe, self.quantity]}
 
 
 class Comment(models.Model):
