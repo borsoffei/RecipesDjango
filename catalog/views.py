@@ -8,28 +8,6 @@ from .models import Recipe, Category, SavedRecipe, RecipeIngredient, Ingredient
 from django.contrib.auth.models import User
 
 
-# search_query = request.GET.get('search', '')
-# filter_query = request.GET.get('filter', '')
-# time_query = request.GET.get('time', '')
-# sort_query = request.GET.get('sort', '')
-#
-# recipes = Recipe.objects.all()
-#
-# if search_query:
-#     recipes = recipes.filter(title__icontains=search_query)
-# if filter_query:
-#     recipes = recipes.filter(ingredients__name=filter_query)
-# if time_query:
-#     recipes = recipes.filter(time=time_query)
-# if sort_query:
-#     recipes = recipes.order_by(sort_query)
-#
-# if not recipes.exists():
-#     message = 'No recipes found'
-# else:
-#     message = ''
-# {'recipes': recipes}
-# Create your views here.
 def index(request):
     return render(request, 'index.html', )
 
@@ -86,12 +64,18 @@ def favorites_view(request):
 
 def category_view(request, category_name):
     category = Category.objects.get(name=category_name)
+    sorting = []
+    time = []
+    difficulty = []
+    selected_ingredients = []
+    excluded_ingredients = []
     if request.method == 'POST':
         # Get filter data from POST
         sorting = request.POST.get('sorting')
         time = request.POST.getlist('time')
         difficulty = request.POST.getlist('difficulty')
-        ingredients = request.POST.getlist('ingredients')
+        selected_ingredients = list(map(int, request.POST.getlist('ingredients')))
+        excluded_ingredients = list(map(int, request.POST.getlist('excluded')))
 
         # Filter recipes based on filter data
         recipes = Recipe.objects.filter(category=category)
@@ -128,14 +112,31 @@ def category_view(request, category_name):
                 'hard': 3,
             }
             recipes = recipes.filter(difficulty__in=[difficulty_levels[d] for d in difficulty])
-        if ingredients:
+
+        if selected_ingredients:
             # Get the ingredients by their IDs
-            ingredient_objects = Ingredient.objects.filter(id__in=ingredients)
+            ingredient_objects = Ingredient.objects.filter(id__in=selected_ingredients)
             # Filter the recipes by the ingredients
-            recipes = recipes.filter(recipeingredient__ingredient__in=ingredient_objects).distinct()
+            for ingredient in ingredient_objects:
+                recipes = recipes.filter(recipeingredient__ingredient=ingredient)
+
+        if excluded_ingredients:
+            # Get the ingredients by their IDs
+            excluded_ingredient_objects = Ingredient.objects.filter(id__in=excluded_ingredients)
+            # Exclude the recipes that contain the excluded ingredients
+            for ingredient in excluded_ingredient_objects:
+                recipes = recipes.exclude(recipeingredient__ingredient=ingredient)
     else:
         recipes = Recipe.objects.filter(category=category)
-    return render(request, 'category.html', {'category': category, 'recipes': recipes})
+    return render(request, 'category.html', {
+        'category': category,
+        'recipes': recipes,
+        'sorting': sorting,
+        'time': time,
+        'difficulty': difficulty,
+        'selected_ingredients': selected_ingredients,
+        'excluded_ingredients': excluded_ingredients,
+    })
 
 
 def create_recipe_view(request):
