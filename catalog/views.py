@@ -64,18 +64,12 @@ def favorites_view(request):
 
 def category_view(request, category_name):
     category = Category.objects.get(name=category_name)
-    sorting = []
-    time = []
-    difficulty = []
-    selected_ingredients = []
-    excluded_ingredients = []
-    if request.method == 'POST':
-        # Get filter data from POST
-        sorting = request.POST.get('sorting')
-        time = request.POST.getlist('time')
-        difficulty = request.POST.getlist('difficulty')
-        selected_ingredients = list(map(int, request.POST.getlist('ingredients')))
-        excluded_ingredients = list(map(int, request.POST.getlist('excluded')))
+    sorting = request.POST.get('sorting', [])
+    time = request.POST.getlist('time', [])
+    difficulty = request.POST.getlist('difficulty', [])
+    selected_ingredients = list(map(int, request.POST.getlist('ingredients', [])))
+    excluded_ingredients = list(map(int, request.POST.getlist('excluded', [])))
+    if request.method == 'GET':
 
         # Filter recipes based on filter data
         recipes = Recipe.objects.filter(category=category)
@@ -140,6 +134,7 @@ def category_view(request, category_name):
 
 
 def create_recipe_view(request):
+    ingredients = []
     if request.method == 'POST':
         form = RecipeForm(request.POST)
         if form.is_valid():
@@ -162,6 +157,76 @@ def create_recipe_view(request):
         form = RecipeForm()
         ingredients = Ingredient.objects.all()  # Get all ingredients for the form
     return render(request, 'create_recipe.html', {'form': form, 'ingredients': ingredients})
+
+
+def search_view(request):
+    query = request.GET.get('q', '')
+    recipes = Recipe.objects.filter(Q(title__icontains=query))
+    sorting = request.GET.get('sorting', '')
+    time = request.GET.getlist('time', [])
+    difficulty = request.GET.getlist('difficulty', [])
+    selected_ingredients = list(map(int, request.GET.getlist('ingredients', [])))
+    excluded_ingredients = list(map(int, request.GET.getlist('excluded', [])))
+    if request.method == 'GET':
+
+        # Filter recipes based on filter data
+        if sorting:
+            if 'asc' in sorting:
+                order = ''
+            else:
+                order = '-'
+            if 'difficulty' in sorting:
+                recipes = recipes.order_by(f'{order}difficulty')
+            elif 'time' in sorting:
+                recipes = recipes.order_by(f'{order}time')
+            elif 'rating' in sorting:
+                recipes = recipes.order_by(f'{order}rating')
+        if time:
+            # Convert time ranges to actual time values
+            time_ranges = {
+                'up_to_15': (0, 15),
+                '15_to_30': (15, 30),
+                '30_to_60': (30, 60),
+                '60_to_90': (60, 90),
+                '90_plus': (90, 10000),
+            }
+            queries = [Q(time__range=time_ranges[t]) for t in time]
+            s_query = queries.pop()
+            for item in queries:
+                s_query |= item
+            recipes = recipes.filter(s_query)
+        if difficulty:
+            # Convert difficulty levels to actual difficulty values
+            difficulty_levels = {
+                'easy': 1,
+                'normal': 2,
+                'hard': 3,
+            }
+            recipes = recipes.filter(difficulty__in=[difficulty_levels[d] for d in difficulty])
+
+        if selected_ingredients:
+            # Get the ingredients by their IDs
+            ingredient_objects = Ingredient.objects.filter(id__in=selected_ingredients)
+            # Filter the recipes by the ingredients
+            for ingredient in ingredient_objects:
+                recipes = recipes.filter(recipeingredient__ingredient=ingredient)
+
+        if excluded_ingredients:
+            # Get the ingredients by their IDs
+            excluded_ingredient_objects = Ingredient.objects.filter(id__in=excluded_ingredients)
+            # Exclude the recipes that contain the excluded ingredients
+            for ingredient in excluded_ingredient_objects:
+                recipes = recipes.exclude(recipeingredient__ingredient=ingredient)
+    print(query)
+    return render(request, 'search.html', {
+        'query': query,
+        'recipes': recipes,
+        'sorting': sorting,
+        'time': time,
+        'difficulty': difficulty,
+        'selected_ingredients': selected_ingredients,
+        'excluded_ingredients': excluded_ingredients,
+    })
 
 
 def recipe_detail_view(request, recipe_id):

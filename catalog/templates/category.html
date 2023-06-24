@@ -6,7 +6,7 @@
         <div class="row">
             <div class="col-md-3">
                 <h3>Filters</h3>
-                <form id="filterForm" method="POST" action="{% url 'category_view' category.name %}">
+                <form id="filterForm" method="GET" action="{% url 'category_view' category.name %}">
                     {% csrf_token %}
                     <h4>Sorting</h4>
                     <select id="sorting" name="sorting">
@@ -89,20 +89,21 @@
                 </ul>
             </div>
         </div>
-        <script>
-            var selectedIngredients = JSON.parse('{{ selected_ingredients|escapejs }}');
-            $('#ingredientSelect').select2({
-                placeholder: 'Select ingredients',
-                allowClear: true
-            }).val(selectedIngredients).trigger('change');
-        </script>
-        <script>
-            var excludedIngredients = JSON.parse('{{ excluded_ingredients|escapejs }}');
-            $('#excludeIngredientSelect').select2({
-                placeholder: 'Select ingredients to exclude',
-                allowClear: true
-            }).val(excludedIngredients).trigger('change');
-        </script>
-
     </div>
+    <script>
+        var selectedIngredients = JSON.parse('{{ selected_ingredients|escapejs }}');
+        $('#ingredientSelect').select2({
+            placeholder: 'Select ingredients',
+            allowClear: true
+        }).val(selectedIngredients).trigger('change');
+    </script>
+    <script>
+        var excludedIngredients = JSON.parse('{{ excluded_ingredients|escapejs }}');
+        $('#excludeIngredientSelect').select2({
+            placeholder: 'Select ingredients to exclude',
+            allowClear: true
+        }).val(excludedIngredients).trigger('change');
+    </script>
+
+
 {% endblock %}
