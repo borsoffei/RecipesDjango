@@ -90,7 +90,7 @@
                 </form>
                 <ul>
                     {% for recipe in recipes %}
-                        <li><a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a></li>
+                        {% include 'recipe_card.html' %}
                     {% empty %}
                         <p>No recipes found.</p>
                     {% endfor %}

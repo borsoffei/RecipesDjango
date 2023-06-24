@@ -82,11 +82,9 @@
                 </form>
             </div>
             <div class="col-md-9">
-                <ul>
-                    {% for recipe in recipes %}
-                        <li><a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a></li>
-                    {% endfor %}
-                </ul>
+                {% for recipe in recipes %}
+                    {% include 'recipe_card.html' %}
+                {% endfor %}
             </div>
         </div>
     </div>

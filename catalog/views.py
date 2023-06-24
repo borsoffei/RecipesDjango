@@ -59,7 +59,11 @@ def user_view(request, username):
 
 def favorites_view(request):
     saved_recipes = SavedRecipe.objects.filter(user=request.user)
-    return render(request, 'favorites.html', {'saved_recipes': saved_recipes})
+    # print(len(list(saved_recipes)))
+    recipes = [saved_recipe.recipe for saved_recipe in saved_recipes]
+    # for recipe in recipes:
+    #     recipe.is_favorite = SavedRecipe.objects.filter(user=request.user, recipe=recipe).exists()
+    return render(request, 'favorites.html', {'recipes': recipes})
 
 
 def category_view(request, category_name):
@@ -217,7 +221,7 @@ def search_view(request):
             # Exclude the recipes that contain the excluded ingredients
             for ingredient in excluded_ingredient_objects:
                 recipes = recipes.exclude(recipeingredient__ingredient=ingredient)
-    print(query)
+
     return render(request, 'search.html', {
         'query': query,
         'recipes': recipes,
@@ -232,3 +236,12 @@ def search_view(request):
 def recipe_detail_view(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)
     return render(request, 'recipe_detail.html', {'recipe': recipe})
+
+
+def toggle_favorite(request, recipe_id):
+    recipe = Recipe.objects.get(id=recipe_id)
+    saved_recipe, created = SavedRecipe.objects.get_or_create(user=request.user, recipe=recipe)
+    print(saved_recipe, created)
+    if not created:
+        saved_recipe.delete()
+    return redirect(request.META.get('HTTP_REFERER', 'redirect_if_referer_not_found'))

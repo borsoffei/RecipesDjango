@@ -3,12 +3,10 @@
 {% block content %}
     <h1>Favorites Recipes</h1>
 
-    {% if saved_recipes %}
-        <ul>
-            {% for saved_recipe in saved_recipes %}
-                <li><a href="{% url 'recipe_detail' saved_recipe.recipe.id %}">{{ saved_recipe.recipe.title }}</a></li>
-            {% endfor %}
-        </ul>
+    {% if recipes %}
+        {% for recipe in recipes %}
+            {% include 'recipe_card.html' %}
+        {% endfor %}
     {% else %}
         <p>You have not saved any recipes yet.</p>
     {% endif %}

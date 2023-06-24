@@ -1,0 +1,16 @@
+{% load recipe_tags %}
+<div class="recipe-card">
+    <a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a>
+    <!-- Other recipe details... -->
+
+    {% if user.is_authenticated %}
+        <form method="POST" action="{% url 'toggle_favorite' recipe.id %}">
+            {% csrf_token %}
+            {% if recipe|is_favorite:user %}
+                <input type="submit" value="Remove from Favorites" class="btn btn-danger">
+            {% else %}
+                <input type="submit" value="Add to Favorites" class="btn btn-primary">
+            {% endif %}
+        </form>
+    {% endif %}
+</div>

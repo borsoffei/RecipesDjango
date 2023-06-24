@@ -8,11 +8,7 @@
     {% if recipes %}
         <h2>Your Recipes</h2>
         {% for recipe in recipes %}
-            <div>
-
-                <a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a>
-                <!-- Добавьте здесь дополнительную информацию о рецепте -->
-            </div>
+            {% include 'recipe_card.html' %}
         {% endfor %}
     {% else %}
         <p>You have no recipes yet. </p>

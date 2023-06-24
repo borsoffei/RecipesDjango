@@ -5,11 +5,11 @@
 
     {% if recipes %}
         <h2>Recipes:</h2>
-        <ul>
-            {% for recipe in recipes %}
-                <li><a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a></li>
-            {% endfor %}
-        </ul>
+
+        {% for recipe in recipes %}
+            {% include 'recipe_card.html' %}
+        {% endfor %}
+
     {% else %}
         <p>This user has not published any recipes yet.</p>
     {% endif %}
