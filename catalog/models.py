@@ -28,6 +28,8 @@ class Recipe(models.Model):
     def is_favorite(self, user):
         return self.savedrecipe_set.filter(user=user).exists()
 
+    def __str__(self):
+        return self.title
 
 
 class Ingredient(models.Model):
@@ -42,11 +44,17 @@ class RecipeIngredient(models.Model):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     quantity = models.CharField(max_length=200)
 
+    def __str__(self):
+        return str(self.recipe) + '-' + str(self.ingredient)
+
 
 class Comment(models.Model):
     text = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.text
 
 
 class Rating(models.Model):
@@ -54,7 +62,13 @@ class Rating(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return str(self.recipe) + '-' + str(self.score)
+
 
 class SavedRecipe(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user) + '-' + str(self.recipe)
