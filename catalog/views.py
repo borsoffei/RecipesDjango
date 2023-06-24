@@ -1,10 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_POST
+
 from .forms import RegistrationForm, RecipeForm
 from django.contrib.auth import authenticate, login, logout
-from .models import Recipe, Category, SavedRecipe, RecipeIngredient, Ingredient
+from .models import Recipe, Category, SavedRecipe, RecipeIngredient, Ingredient, Rating
 from django.contrib.auth.models import User
 
 
@@ -235,7 +237,10 @@ def search_view(request):
 
 def recipe_detail_view(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)
-    return render(request, 'recipe_detail.html', {'recipe': recipe})
+    user_rating = None
+    if request.user.is_authenticated:
+        user_rating = Rating.objects.filter(user=request.user, recipe=recipe).first()
+    return render(request, 'recipe_detail.html', {'recipe': recipe, 'user_rating': user_rating})
 
 
 def toggle_favorite(request, recipe_id):
@@ -245,3 +250,31 @@ def toggle_favorite(request, recipe_id):
     if not created:
         saved_recipe.delete()
     return redirect(request.META.get('HTTP_REFERER', 'redirect_if_referer_not_found'))
+
+
+@require_POST
+@login_required
+def rate_recipe(request, recipe_id):
+    print('IM HERE')
+    score = request.POST.get('score')
+    user = request.user
+    recipe = Recipe.objects.get(id=recipe_id)
+
+    if recipe.user == user:
+        return JsonResponse({'status': 'error', 'message': 'You cannot rate your own recipe.'}, status=200)
+
+    # rating, created = Rating.objects.get_or_create(user=user, recipe=recipe, defaults={'score': score})
+    if score == '0':
+        # Если score равно 0, удаляем оценку пользователя
+        try:
+            Rating.objects.filter(user=user, recipe=recipe).delete()
+        except Exception as e:
+            print(e)
+    else:
+        # Иначе обновляем или создаем новую оценку
+        rating, created = Rating.objects.get_or_create(user=user, recipe=recipe, defaults={'score': score})
+        if not created:
+            rating.score = score
+            rating.save()
+
+    return JsonResponse({'status': 'ok'})

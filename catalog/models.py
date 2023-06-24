@@ -28,6 +28,8 @@ class Recipe(models.Model):
     def is_favorite(self, user):
         return self.savedrecipe_set.filter(user=user).exists()
 
+
+
 class Ingredient(models.Model):
     name = models.CharField(max_length=200, unique=True)
 

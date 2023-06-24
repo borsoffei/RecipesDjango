@@ -13,4 +13,53 @@
     </ul>
     <h2>Instructions:</h2>
     <p>{{ recipe.instructions }}</p>
+    <div class="rating">
+        <span class="star" data-value="1">☆</span>
+        <span class="star" data-value="2">☆</span>
+        <span class="star" data-value="3">☆</span>
+        <span class="star" data-value="4">☆</span>
+        <span class="star" data-value="5">☆</span>
+    </div>
+    <script>
+        $(document).ready(function () {
+            var userRating = {% if user_rating %}{{ user_rating.score }}{% else %}0{% endif %};
+            $.ajaxSetup({
+                headers: {"X-CSRFToken": '{{ csrf_token }}'}
+            });
+            $('.star').each(function () {
+                var starValue = $(this).data('value');
+                if (starValue <= userRating) {
+                    $(this).addClass('active');
+                } else {
+                    $(this).removeClass('active');
+                }
+            });
+            $('.star').click(function () {
+                var star = $(this);
+                var value = parseInt(star.data('value'));
+                // Если пользователь кликнул по звезде, которая уже активна, значит он хочет отменить свою оценку
+                if (star.hasClass('active') && value === userRating) {
+                    value = 0;  // Отправляем 0 на сервер, чтобы отменить оценку
+                }
+                $.post('{% url "rate_recipe" recipe.id %}', {'score': value}, function (response) {
+                    if (response.status === 'ok') {
+                        // Обновите отображение звезд
+                        $('.star').each(function () {
+                            var starValue = $(this).data('value');
+                            if (starValue <= value) {
+                                $(this).addClass('active');
+                            } else {
+                                $(this).removeClass('active');
+                            }
+                        });
+                        userRating = value;
+                    } else if (response.status === 'error') {
+                        alert(response.message);
+                    }
+                }).fail(function () {
+                    alert('You must be logged in to rate recipes.');
+                });
+            });
+        });
+    </script>
 {% endblock %}
