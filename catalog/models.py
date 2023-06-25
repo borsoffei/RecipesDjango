@@ -4,6 +4,10 @@ from django.db import models
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Avg
+from django.utils import timezone
+
+
+
 
 
 class Category(models.Model):
@@ -19,6 +23,9 @@ class Recipe(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     time = models.IntegerField(default=None)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    favorited_by = models.ManyToManyField(User, related_name='favorite_recipes')
     DIFFICULTY_CHOICES = [
         (1, 'Легкая'),
         (2, 'Средняя'),
@@ -26,8 +33,8 @@ class Recipe(models.Model):
     ]
     difficulty = models.IntegerField(choices=DIFFICULTY_CHOICES)
 
-    def is_favorite(self, user):
-        return self.savedrecipe_set.filter(user=user).exists()
+    # def is_favorite(self, user):
+    #     return self.savedrecipe_set.filter(user=user).exists()
 
     def rating_count(self):
         return self.rating_set.count()
@@ -70,6 +77,8 @@ class Comment(models.Model):
     text = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.text
@@ -84,9 +93,9 @@ class Rating(models.Model):
         return str(self.recipe) + '-' + str(self.score)
 
 
-class SavedRecipe(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return str(self.user) + '-' + str(self.recipe)
+# class SavedRecipe(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+#
+#     def __str__(self):
+#         return str(self.user) + '-' + str(self.recipe)

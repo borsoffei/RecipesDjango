@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import RegistrationForm, RecipeForm
 from django.contrib.auth import authenticate, login, logout
-from .models import Recipe, Category, SavedRecipe, RecipeIngredient, Ingredient, Rating, Comment
+from .models import Recipe, Category, RecipeIngredient, Ingredient, Rating, Comment
 from django.contrib.auth.models import User
 
 
@@ -60,11 +60,7 @@ def user_view(request, username):
 
 
 def favorites_view(request):
-    saved_recipes = SavedRecipe.objects.filter(user=request.user)
-    # print(len(list(saved_recipes)))
-    recipes = [saved_recipe.recipe for saved_recipe in saved_recipes]
-    # for recipe in recipes:
-    #     recipe.is_favorite = SavedRecipe.objects.filter(user=request.user, recipe=recipe).exists()
+    recipes = request.user.favorite_recipes.all()
     return render(request, 'favorites.html', {'recipes': recipes})
 
 
@@ -264,9 +260,12 @@ def recipe_detail_view(request, recipe_id):
 
 def toggle_favorite(request, recipe_id):
     recipe = Recipe.objects.get(id=recipe_id)
-    saved_recipe, created = SavedRecipe.objects.get_or_create(user=request.user, recipe=recipe)
-    if not created:
-        saved_recipe.delete()
+    if request.user in recipe.favorited_by.all():
+        # Если рецепт уже в избранном, удаляем его из избранного
+        recipe.favorited_by.remove(request.user)
+    else:
+        # Если рецепта нет в избранном, добавляем его в избранное
+        recipe.favorited_by.add(request.user)
     return redirect(request.META.get('HTTP_REFERER', 'redirect_if_referer_not_found'))
 
 

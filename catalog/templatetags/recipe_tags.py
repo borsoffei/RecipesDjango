@@ -5,7 +5,8 @@ register = template.Library()
 
 @register.filter
 def is_favorite(recipe, user):
-    return recipe.is_favorite(user)
+    fav = user.favorite_recipes.all()
+    return recipe in fav
 
 
 @register.filter
