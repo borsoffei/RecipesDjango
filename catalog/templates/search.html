@@ -28,7 +28,15 @@
                             Low)
                         </option>
                     </select>
-
+                    <h4>Category</h4>
+                    <div>
+                        <select id="categorySelect" name="category">
+                            {% for category in categories %}
+                                <option value="{{ category.id }}"
+                                        {% if selected_category == category.id|stringformat:"s"%}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <h4>Time</h4>
                     <div id="timeCheckboxes">
                         <input type="checkbox" id="time1" name="time" value="up_to_15"

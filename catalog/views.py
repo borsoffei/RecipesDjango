@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import RegistrationForm, RecipeForm
 from django.contrib.auth import authenticate, login, logout
-from .models import Recipe, Category, SavedRecipe, RecipeIngredient, Ingredient, Rating
+from .models import Recipe, Category, SavedRecipe, RecipeIngredient, Ingredient, Rating, Comment
 from django.contrib.auth.models import User
 
 
@@ -173,6 +173,7 @@ def search_view(request):
     difficulty = request.GET.getlist('difficulty', [])
     selected_ingredients = list(map(int, request.GET.getlist('ingredients', [])))
     excluded_ingredients = list(map(int, request.GET.getlist('excluded', [])))
+    selected_category = request.GET.get('category', '')
     if request.method == 'GET':
 
         # Filter recipes based on filter data
@@ -187,6 +188,10 @@ def search_view(request):
                 recipes = recipes.order_by(f'{order}time')
             elif 'rating' in sorting:
                 recipes = recipes.order_by(f'{order}rating')
+
+        if selected_category:
+            recipes = recipes.filter(category=selected_category)
+
         if time:
             # Convert time ranges to actual time values
             time_ranges = {
@@ -232,21 +237,25 @@ def search_view(request):
         'difficulty': difficulty,
         'selected_ingredients': selected_ingredients,
         'excluded_ingredients': excluded_ingredients,
+        'selected_category': str(selected_category),
     })
 
 
 def recipe_detail_view(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)
     user_rating = None
+    comments = Comment.objects.filter(recipe=recipe)
     if request.user.is_authenticated:
         user_rating = Rating.objects.filter(user=request.user, recipe=recipe).first()
-    return render(request, 'recipe_detail.html', {'recipe': recipe, 'user_rating': user_rating})
+    if request.method == 'POST':
+        comment_text = request.POST.get('comment_making')
+        Comment.objects.create(recipe=recipe, text=comment_text, user=request.user)
+    return render(request, 'recipe_detail.html', {'recipe': recipe, 'user_rating': user_rating, 'comments': comments, })
 
 
 def toggle_favorite(request, recipe_id):
     recipe = Recipe.objects.get(id=recipe_id)
     saved_recipe, created = SavedRecipe.objects.get_or_create(user=request.user, recipe=recipe)
-    print(saved_recipe, created)
     if not created:
         saved_recipe.delete()
     return redirect(request.META.get('HTTP_REFERER', 'redirect_if_referer_not_found'))
@@ -255,7 +264,6 @@ def toggle_favorite(request, recipe_id):
 @require_POST
 @login_required
 def rate_recipe(request, recipe_id):
-    print('IM HERE')
     score = request.POST.get('score')
     user = request.user
     recipe = Recipe.objects.get(id=recipe_id)

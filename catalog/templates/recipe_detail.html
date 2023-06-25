@@ -13,12 +13,29 @@
     </ul>
     <h2>Instructions:</h2>
     <p>{{ recipe.instructions }}</p>
-    <div class="rating">
-        <span class="star" data-value="1">☆</span>
-        <span class="star" data-value="2">☆</span>
-        <span class="star" data-value="3">☆</span>
-        <span class="star" data-value="4">☆</span>
-        <span class="star" data-value="5">☆</span>
+    {% if user.is_authenticated %}
+        <div class="rating">
+            <span class="star" data-value="1">☆</span>
+            <span class="star" data-value="2">☆</span>
+            <span class="star" data-value="3">☆</span>
+            <span class="star" data-value="4">☆</span>
+            <span class="star" data-value="5">☆</span>
+        </div>
+        <div class="make_comment">
+            <form method="post">
+                {% csrf_token %}
+                <label for="comment_making">Введите ваш комментарий</label>
+                <input type="text" name="comment_making" id="comment_making" required>
+                <button type="submit">Отправить</button>
+            </form>
+        </div>
+    {% endif %}
+    <div>
+        {% for comment in comments %}
+            <div>
+                <p>{{ comment.text }}</p>
+            </div>
+        {% endfor %}
     </div>
     <script>
         $(document).ready(function () {
