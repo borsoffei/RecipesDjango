@@ -1,6 +1,7 @@
 {% load recipe_tags %}
 <div class="recipe-card">
     <a href="{% url 'recipe_detail' recipe.id %}">{{ recipe.title }}</a>
+    <p>☆{{ recipe|average_rating }} ({{ recipe|rating_count }})</p>
     <!-- Other recipe details... -->
 
     {% if user.is_authenticated %}

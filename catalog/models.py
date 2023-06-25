@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Avg
 
 
 class Category(models.Model):
@@ -27,6 +28,23 @@ class Recipe(models.Model):
 
     def is_favorite(self, user):
         return self.savedrecipe_set.filter(user=user).exists()
+
+    def rating_count(self):
+        return self.rating_set.count()
+
+    def average_rating(self):
+        # Получаем все оценки для этого рецепта
+        ratings = Rating.objects.filter(recipe=self)
+
+        # Вычисляем среднее значение
+        average = ratings.aggregate(Avg('score'))['score__avg']
+
+        # Если нет оценок, вернем None
+        if average is None:
+            return None
+
+        # Иначе вернем среднее значение, округленное до одного знака после запятой
+        return round(average, 1)
 
     def __str__(self):
         return self.title

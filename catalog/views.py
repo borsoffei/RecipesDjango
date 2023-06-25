@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Avg
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
@@ -70,13 +70,12 @@ def favorites_view(request):
 
 def category_view(request, category_name):
     category = Category.objects.get(name=category_name)
-    sorting = request.POST.get('sorting', [])
-    time = request.POST.getlist('time', [])
-    difficulty = request.POST.getlist('difficulty', [])
-    selected_ingredients = list(map(int, request.POST.getlist('ingredients', [])))
-    excluded_ingredients = list(map(int, request.POST.getlist('excluded', [])))
+    sorting = request.GET.get('sorting', [])
+    time = request.GET.getlist('time', [])
+    difficulty = request.GET.getlist('difficulty', [])
+    selected_ingredients = list(map(int, request.GET.getlist('ingredients', [])))
+    excluded_ingredients = list(map(int, request.GET.getlist('excluded', [])))
     if request.method == 'GET':
-
         # Filter recipes based on filter data
         recipes = Recipe.objects.filter(category=category)
         if sorting:
@@ -89,7 +88,10 @@ def category_view(request, category_name):
             elif 'time' in sorting:
                 recipes = recipes.order_by(f'{order}time')
             elif 'rating' in sorting:
-                recipes = recipes.order_by(f'{order}rating')
+                # Аннотируем каждый рецепт его средним рейтингом
+                recipes = recipes.annotate(average_rating=Avg('rating__score'))
+                # Сортируем по этому аннотированному полю
+                recipes = recipes.order_by('average_rating', f'{order}average_rating')
         if time:
             # Convert time ranges to actual time values
             time_ranges = {
@@ -187,7 +189,10 @@ def search_view(request):
             elif 'time' in sorting:
                 recipes = recipes.order_by(f'{order}time')
             elif 'rating' in sorting:
-                recipes = recipes.order_by(f'{order}rating')
+                # Аннотируем каждый рецепт его средним рейтингом
+                recipes = recipes.annotate(average_rating=Avg('rating__score'))
+                # Сортируем по этому аннотированному полю
+                recipes = recipes.order_by('average_rating', f'{order}average_rating')
 
         if selected_category:
             recipes = recipes.filter(category=selected_category)
@@ -250,7 +255,11 @@ def recipe_detail_view(request, recipe_id):
     if request.method == 'POST':
         comment_text = request.POST.get('comment_making')
         Comment.objects.create(recipe=recipe, text=comment_text, user=request.user)
-    return render(request, 'recipe_detail.html', {'recipe': recipe, 'user_rating': user_rating, 'comments': comments, })
+    return render(request, 'recipe_detail.html', {
+        'recipe': recipe,
+        'user_rating': user_rating,
+        'comments': comments,
+    })
 
 
 def toggle_favorite(request, recipe_id):
