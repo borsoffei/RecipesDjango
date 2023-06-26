@@ -6,17 +6,63 @@ from .models import Recipe, Rating, RecipeIngredient, Ingredient, Category, Comm
 
 # Register your models here.
 
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'text', 'user', 'recipe', 'created_at', 'updated_at')
+    date_hierarchy = 'created_at'
+    list_filter = ('user', 'recipe')
+    list_display_links = ('text',)
+    search_fields = ['text', 'recipe__title', 'user__username']
+    readonly_fields = ('user', 'recipe')
+
+
+admin.site.register(Comment, CommentAdmin)
+
+
+class CommentInline(admin.TabularInline):
+    model = Comment
+
+
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ('id', 'score', 'user', 'recipe')
+    list_filter = ('score', 'user', 'recipe')
+    list_display_links = ('score',)
+    fields = ('user', 'recipe', 'score')
+    search_fields = ('user__username', 'recipe__title')
+    readonly_fields = ('user', 'recipe')
+
+admin.site.register(Rating, RatingAdmin)
+
+
+class RatingInline(admin.TabularInline):
+    model = Rating
+
+
+class RecipeIngredientAdmin(admin.ModelAdmin):
+    list_display = ('id', 'quantity', 'recipe', 'ingredient')
+    list_filter = ('quantity', 'recipe', 'ingredient')
+    list_display_links = ('id',)
+    search_fields = ('recipe__title',)
+    readonly_fields = ('quantity', 'recipe', 'ingredient')
+
+
+admin.site.register(RecipeIngredient, RecipeIngredientAdmin)
+
+
+class RecipeIngredientInline(admin.TabularInline):
+    model = RecipeIngredient
+
 
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
-        'short_title', 'short_instructions', 'category', 'user', 'time', 'created_at', 'updated_at', 'difficulty',
+        'id', 'short_title', 'short_instructions', 'category', 'user', 'time', 'created_at', 'updated_at', 'difficulty',
         'average_rating')
     list_display_links = ('short_title',)
     date_hierarchy = 'created_at'
     filter_horizontal = ('favorited_by',)
     list_filter = ('category', 'user', 'time', 'difficulty', 'average_rating')
-    fields = ['title', 'instructions', ('time', 'category', 'difficulty', 'average_rating')]
-    search_fields = ('title',)
+    fields = ['title', 'user', 'instructions', ('time', 'category', 'difficulty', 'average_rating')]
+    search_fields = ('id', 'title', 'user__username')
+    readonly_fields = ('average_rating', 'user')
     def short_instructions(self, obj):
         return truncatechars(obj.instructions, 10)  # обрезает до 10 символов
 
@@ -25,51 +71,23 @@ class RecipeAdmin(admin.ModelAdmin):
 
     short_instructions.short_description = 'Instructions'  # заголовок колонки в админке
     short_title.short_description = 'Title'
+    inlines = [RatingInline, CommentInline, RecipeIngredientInline, ]
+
 
 admin.site.register(Recipe, RecipeAdmin)
 
 
-class RatingAdmin(admin.ModelAdmin):
-    list_display = ('score', 'user', 'recipe')
-    list_filter = ('score', 'user', 'recipe')
-    list_display_links = ('score',)
-    fields = ('user', 'recipe', 'score')
-
-
-
-admin.site.register(Rating, RatingAdmin)
-
-
-class RecipeIngredientAdmin(admin.ModelAdmin):
-    list_display = ('quantity', 'recipe', 'ingredient')
-    list_filter = ('quantity', 'recipe', 'ingredient')
-    list_display_links = ('quantity',)
-
-
-admin.site.register(RecipeIngredient, RecipeIngredientAdmin)
-
-
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+    list_display = ('id', 'name',)
+    search_fields = ('id', 'name',)
 
 
 admin.site.register(Ingredient, IngredientAdmin)
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+    list_display = ('id', 'name',)
+    search_fields = ('id', 'name',)
+
 
 admin.site.register(Category, CategoryAdmin)
-
-
-class CommentAdmin(admin.ModelAdmin):
-    list_display = ('text', 'user', 'recipe', 'created_at', 'updated_at')
-    date_hierarchy = 'created_at'
-    list_filter = ('user', 'recipe')
-    list_display_links = ('text',)
-    search_fields = ('text',)
-
-
-admin.site.register(Comment, CommentAdmin)
