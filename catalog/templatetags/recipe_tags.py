@@ -9,9 +9,9 @@ def is_favorite(recipe, user):
     return recipe in fav
 
 
-@register.filter
-def average_rating(recipe):
-    return recipe.average_rating()
+# @register.filter
+# def average_rating(recipe):
+#     return recipe.average_rating()
 
 
 @register.filter

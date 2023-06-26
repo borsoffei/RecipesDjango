@@ -283,9 +283,10 @@ def rate_recipe(request, recipe_id):
     if score == '0':
         # Если score равно 0, удаляем оценку пользователя
         try:
-            Rating.objects.filter(user=user, recipe=recipe).delete()
-        except Exception as e:
-            print(e)
+            rating = Rating.objects.get(user=user, recipe=recipe)
+            rating.delete()
+        except Rating.DoesNotExist:
+            pass
     else:
         # Иначе обновляем или создаем новую оценку
         rating, created = Rating.objects.get_or_create(user=user, recipe=recipe, defaults={'score': score})
